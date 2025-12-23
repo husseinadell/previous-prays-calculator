@@ -1,6 +1,7 @@
 # Previous Prays Calculator API
 
 API for calculating previous prayers that a user didn't pray and setting goals for each prayer.
+Using Cursor to generate the code.
 
 ## Tech Stack
 
@@ -66,9 +67,56 @@ The API will be available at `http://localhost:3000`
 - `pnpm dev` - Start development server with hot reload
 - `pnpm build` - Build for production
 - `pnpm start` - Start production server
+- `pnpm lint` - Check for linting errors
+- `pnpm lint:fix` - Fix auto-fixable linting errors
+- `pnpm format` - Format code with Prettier
+- `pnpm format:check` - Check if code is formatted
 - `pnpm prisma:generate` - Generate Prisma Client
 - `pnpm prisma:migrate` - Run database migrations
 - `pnpm prisma:studio` - Open Prisma Studio (database GUI)
+
+## Docker Deployment
+
+### Build Docker Image
+
+```bash
+docker build -t previous-prays-calculator .
+```
+
+### Run with Docker Compose (Production)
+
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### Environment Variables for Production
+
+Create a `.env` file with:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/previous_prays?schema=public
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRES_IN=7d
+PORT=3000
+NODE_ENV=production
+LOG_LEVEL=info
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=previous_prays
+DB_PORT=5432
+```
+
+### Run Migrations in Docker
+
+```bash
+docker-compose -f docker-compose.prod.yml exec app pnpm prisma:migrate deploy
+```
+
+### View Logs
+
+```bash
+docker-compose -f docker-compose.prod.yml logs -f app
+```
 
 ## Project Structure
 
