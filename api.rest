@@ -1,0 +1,87 @@
+### Variables
+@baseUrl = http://localhost:3000
+@apiUrl = {{baseUrl}}/api
+
+### Health Check
+GET {{baseUrl}}/health
+
+### Register User
+POST {{apiUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "John Doe"
+}
+
+### Register User (Minimal - no name)
+POST {{apiUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "test123"
+}
+
+### Register User (Invalid Email)
+POST {{apiUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "password": "password123"
+}
+
+### Register User (Short Password)
+POST {{apiUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "short@example.com",
+  "password": "12345"
+}
+
+### Register User (Missing Fields)
+POST {{apiUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "missing@example.com"
+}
+
+### Login User
+POST {{apiUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+### Login User (Wrong Password)
+POST {{apiUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "wrongpassword"
+}
+
+### Login User (Non-existent User)
+POST {{apiUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com",
+  "password": "password123"
+}
+
+### Login User (Missing Fields)
+POST {{apiUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+
