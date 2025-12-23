@@ -5,21 +5,47 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "./prisma"
+    provider = "prisma-client"
+    output   = "./prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+    provider = "postgresql"
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    id        String   @id @default(uuid())
+    email     String   @unique
+    password  String
+    name      String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    profile   Profile?
 
-  @@map("users")
+    @@map("users")
+}
+
+enum Gender {
+    MALE
+    FEMALE
+}
+
+model Profile {
+    id                     String    @id @default(uuid())
+    userId                 String    @unique
+    user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    gender                 Gender
+    pubertyDate            DateTime
+    regularPrayerStartDate DateTime? // When user started praying regularly
+    periodDaysAverage      Float? // Average days per month not praying due to period (for women)
+    fajrMissPercent        Float     @default(0)
+    dhuhrMissPercent       Float     @default(0)
+    asrMissPercent         Float     @default(0)
+    maghribMissPercent     Float     @default(0)
+    ishaMissPercent        Float     @default(0)
+    jomaaMissPercent       Float? // Optional, mainly for males
+    createdAt              DateTime  @default(now())
+    updatedAt              DateTime  @updatedAt
+
+    @@map("profiles")
 }
