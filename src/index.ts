@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
+import profileRoutes from './routes/profile.routes';
 import { traceIdMiddleware } from './middleware/traceId.middleware';
 import { loggerMiddleware } from './middleware/logger.middleware';
 import logger from './utils/logger';
@@ -24,6 +25,7 @@ app.use(loggerMiddleware);
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

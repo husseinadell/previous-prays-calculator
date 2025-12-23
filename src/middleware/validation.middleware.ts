@@ -1,36 +1,31 @@
 import { Request, Response, NextFunction } from 'express';
+import { validateRegister, validateLogin } from './auth.validation';
+import { validateProfileCreate, validateProfileUpdate } from './profile.validation';
 
-export const validateRegister = (req: Request, res: Response, next: NextFunction): void => {
-  const { email, password } = req.body;
+export { validateRegister, validateLogin };
 
-  if (!email || !password) {
-    res.status(400).json({ error: 'Email and password are required' });
+export const validateProfileCreateMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const errors = validateProfileCreate(req.body);
+  if (errors.length > 0) {
+    res.status(400).json({ error: 'Validation failed', details: errors });
     return;
   }
-
-  // Basic email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    res.status(400).json({ error: 'Invalid email format' });
-    return;
-  }
-
-  // Password validation (minimum 6 characters)
-  if (password.length < 6) {
-    res.status(400).json({ error: 'Password must be at least 6 characters long' });
-    return;
-  }
-
   next();
 };
 
-export const validateLogin = (req: Request, res: Response, next: NextFunction): void => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    res.status(400).json({ error: 'Email and password are required' });
+export const validateProfileUpdateMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const errors = validateProfileUpdate(req.body);
+  if (errors.length > 0) {
+    res.status(400).json({ error: 'Validation failed', details: errors });
     return;
   }
-
   next();
 };

@@ -1,6 +1,7 @@
 ### Variables
 @baseUrl = http://localhost:3000
 @apiUrl = {{baseUrl}}/api
+@token = {{loginResponse.response.body.$.token}}
 
 ### Health Check
 GET {{baseUrl}}/health
@@ -50,7 +51,8 @@ Content-Type: application/json
   "email": "missing@example.com"
 }
 
-### Login User
+### Login User (Save token for subsequent requests)
+# @name loginResponse
 POST {{apiUrl}}/auth/login
 Content-Type: application/json
 
@@ -83,5 +85,90 @@ Content-Type: application/json
 
 {
   "email": "user@example.com"
+}
+
+### ============================================
+### Profile Endpoints (Require Authentication)
+### ============================================
+
+### Create Profile
+POST {{apiUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "gender": "MALE",
+  "pubertyDate": "2010-01-15",
+  "regularPrayerStartDate": "2020-01-01",
+  "fajrMissPercent": 10.5,
+  "dhuhrMissPercent": 5.0,
+  "asrMissPercent": 8.0,
+  "maghribMissPercent": 3.0,
+  "ishaMissPercent": 12.0,
+  "jomaaMissPercent": 2.0
+}
+
+### Create Profile (Female)
+POST {{apiUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "gender": "FEMALE",
+  "pubertyDate": "2012-06-20",
+  "regularPrayerStartDate": "2021-03-15",
+  "periodDaysAverage": 5.5,
+  "fajrMissPercent": 15.0,
+  "dhuhrMissPercent": 10.0,
+  "asrMissPercent": 12.0,
+  "maghribMissPercent": 8.0,
+  "ishaMissPercent": 18.0
+}
+
+### Get Profile
+GET {{apiUrl}}/profile
+Authorization: Bearer {{token}}
+
+### Update Profile
+PUT {{apiUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fajrMissPercent": 8.0,
+  "dhuhrMissPercent": 4.0,
+  "regularPrayerStartDate": "2020-06-01"
+}
+
+### Update Profile (Partial - Only Prayer Percentages)
+PUT {{apiUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fajrMissPercent": 5.0,
+  "dhuhrMissPercent": 3.0,
+  "asrMissPercent": 6.0,
+  "maghribMissPercent": 2.0,
+  "ishaMissPercent": 10.0
+}
+
+### Create Profile (Invalid Gender)
+POST {{apiUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "gender": "INVALID",
+  "pubertyDate": "2010-01-15"
+}
+
+### Create Profile (Missing Required Fields)
+POST {{apiUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "gender": "MALE"
 }
 
