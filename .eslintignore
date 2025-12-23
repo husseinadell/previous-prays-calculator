@@ -1,0 +1,9 @@
+node_modules
+dist
+prisma/prisma
+*.log
+.env
+.env.local
+coverage
+build
+

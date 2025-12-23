@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
+import { traceIdMiddleware } from './middleware/traceId.middleware';
+import { loggerMiddleware } from './middleware/logger.middleware';
+import logger from './utils/logger';
 
 dotenv.config();
 
@@ -13,6 +16,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Trace ID middleware (must be before logger middleware)
+app.use(traceIdMiddleware);
+
+// Logger middleware
+app.use(loggerMiddleware);
+
 // Routes
 app.use('/api/auth', authRoutes);
 
@@ -22,6 +31,5 @@ app.get('/health', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  logger.info({ port: PORT }, 'Server is running');
 });
-
