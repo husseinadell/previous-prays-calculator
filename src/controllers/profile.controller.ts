@@ -2,6 +2,7 @@ import { Response } from 'express';
 import prisma from '../config/database';
 import { getLogger } from '../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { calculateRemainingPrayers } from '../services/remainingPrayersCalculator.service';
 
 export const createProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   const log = getLogger(req.traceId);
@@ -30,6 +31,7 @@ export const createProfile = async (req: AuthRequest, res: Response): Promise<vo
       asrMissPercent = 0,
       maghribMissPercent = 0,
       ishaMissPercent = 0,
+      witrMissPercent,
       jomaaMissPercent,
     } = req.body;
 
@@ -46,15 +48,57 @@ export const createProfile = async (req: AuthRequest, res: Response): Promise<vo
         asrMissPercent: parseFloat(asrMissPercent) || 0,
         maghribMissPercent: parseFloat(maghribMissPercent) || 0,
         ishaMissPercent: parseFloat(ishaMissPercent) || 0,
+        witrMissPercent: witrMissPercent ? parseFloat(witrMissPercent) : null,
         jomaaMissPercent: jomaaMissPercent ? parseFloat(jomaaMissPercent) : null,
       },
     });
 
-    log.info({ userId, profileId: profile.id }, 'Profile created successfully');
+    // Calculate remaining prayers
+    const remainingPrayers = calculateRemainingPrayers({
+      gender: profile.gender,
+      pubertyDate: profile.pubertyDate,
+      regularPrayerStartDate: profile.regularPrayerStartDate,
+      periodDaysAverage: profile.periodDaysAverage,
+      fajrMissPercent: profile.fajrMissPercent,
+      dhuhrMissPercent: profile.dhuhrMissPercent,
+      asrMissPercent: profile.asrMissPercent,
+      maghribMissPercent: profile.maghribMissPercent,
+      ishaMissPercent: profile.ishaMissPercent,
+      witrMissPercent: profile.witrMissPercent,
+      jomaaMissPercent: profile.jomaaMissPercent,
+    });
+
+    // Create or update remaining prayers record
+    await prisma.remainingPrayers.upsert({
+      where: { userId },
+      create: {
+        userId,
+        fajrRemaining: remainingPrayers.fajrRemaining,
+        dhuhrRemaining: remainingPrayers.dhuhrRemaining,
+        asrRemaining: remainingPrayers.asrRemaining,
+        maghribRemaining: remainingPrayers.maghribRemaining,
+        ishaRemaining: remainingPrayers.ishaRemaining,
+        witrRemaining: remainingPrayers.witrRemaining,
+      },
+      update: {
+        fajrRemaining: remainingPrayers.fajrRemaining,
+        dhuhrRemaining: remainingPrayers.dhuhrRemaining,
+        asrRemaining: remainingPrayers.asrRemaining,
+        maghribRemaining: remainingPrayers.maghribRemaining,
+        ishaRemaining: remainingPrayers.ishaRemaining,
+        witrRemaining: remainingPrayers.witrRemaining,
+      },
+    });
+
+    log.info(
+      { userId, profileId: profile.id, remainingPrayers },
+      'Profile created successfully with remaining prayers calculated'
+    );
 
     res.status(201).json({
       message: 'Profile created successfully',
       profile,
+      remainingPrayers,
     });
   } catch (error) {
     log.error({ err: error }, 'Profile creation error');
@@ -125,6 +169,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
       asrMissPercent,
       maghribMissPercent,
       ishaMissPercent,
+      witrMissPercent,
       jomaaMissPercent,
     } = req.body;
 
@@ -145,6 +190,8 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
     if (maghribMissPercent !== undefined)
       updateData.maghribMissPercent = parseFloat(maghribMissPercent);
     if (ishaMissPercent !== undefined) updateData.ishaMissPercent = parseFloat(ishaMissPercent);
+    if (witrMissPercent !== undefined)
+      updateData.witrMissPercent = witrMissPercent ? parseFloat(witrMissPercent) : null;
     if (jomaaMissPercent !== undefined)
       updateData.jomaaMissPercent = jomaaMissPercent ? parseFloat(jomaaMissPercent) : null;
 
@@ -153,7 +200,64 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
       data: updateData,
     });
 
-    log.info({ userId, profileId: profile.id }, 'Profile updated successfully');
+    // Recalculate remaining prayers if profile data that affects calculation was updated
+    const shouldRecalculate =
+      gender !== undefined ||
+      pubertyDate !== undefined ||
+      regularPrayerStartDate !== undefined ||
+      periodDaysAverage !== undefined ||
+      fajrMissPercent !== undefined ||
+      dhuhrMissPercent !== undefined ||
+      asrMissPercent !== undefined ||
+      maghribMissPercent !== undefined ||
+      ishaMissPercent !== undefined ||
+      witrMissPercent !== undefined ||
+      jomaaMissPercent !== undefined;
+
+    if (shouldRecalculate) {
+      const remainingPrayers = calculateRemainingPrayers({
+        gender: profile.gender,
+        pubertyDate: profile.pubertyDate,
+        regularPrayerStartDate: profile.regularPrayerStartDate,
+        periodDaysAverage: profile.periodDaysAverage,
+        fajrMissPercent: profile.fajrMissPercent,
+        dhuhrMissPercent: profile.dhuhrMissPercent,
+        asrMissPercent: profile.asrMissPercent,
+        maghribMissPercent: profile.maghribMissPercent,
+        ishaMissPercent: profile.ishaMissPercent,
+        witrMissPercent: profile.witrMissPercent,
+        jomaaMissPercent: profile.jomaaMissPercent,
+      });
+
+      // Update remaining prayers record
+      await prisma.remainingPrayers.upsert({
+        where: { userId },
+        create: {
+          userId,
+          fajrRemaining: remainingPrayers.fajrRemaining,
+          dhuhrRemaining: remainingPrayers.dhuhrRemaining,
+          asrRemaining: remainingPrayers.asrRemaining,
+          maghribRemaining: remainingPrayers.maghribRemaining,
+          ishaRemaining: remainingPrayers.ishaRemaining,
+          witrRemaining: remainingPrayers.witrRemaining,
+        },
+        update: {
+          fajrRemaining: remainingPrayers.fajrRemaining,
+          dhuhrRemaining: remainingPrayers.dhuhrRemaining,
+          asrRemaining: remainingPrayers.asrRemaining,
+          maghribRemaining: remainingPrayers.maghribRemaining,
+          ishaRemaining: remainingPrayers.ishaRemaining,
+          witrRemaining: remainingPrayers.witrRemaining,
+        },
+      });
+
+      log.info(
+        { userId, profileId: profile.id, remainingPrayers },
+        'Profile updated successfully with remaining prayers recalculated'
+      );
+    } else {
+      log.info({ userId, profileId: profile.id }, 'Profile updated successfully');
+    }
 
     res.json({
       message: 'Profile updated successfully',

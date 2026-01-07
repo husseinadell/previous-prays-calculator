@@ -105,6 +105,7 @@ Content-Type: application/json
   "asrMissPercent": 8.0,
   "maghribMissPercent": 3.0,
   "ishaMissPercent": 12.0,
+  "witrMissPercent": 4.0,
   "jomaaMissPercent": 2.0
 }
 
@@ -122,7 +123,8 @@ Content-Type: application/json
   "dhuhrMissPercent": 10.0,
   "asrMissPercent": 12.0,
   "maghribMissPercent": 8.0,
-  "ishaMissPercent": 18.0
+  "ishaMissPercent": 18.0,
+  "witrMissPercent": 6.0
 }
 
 ### Get Profile
@@ -150,7 +152,8 @@ Content-Type: application/json
   "dhuhrMissPercent": 3.0,
   "asrMissPercent": 6.0,
   "maghribMissPercent": 2.0,
-  "ishaMissPercent": 10.0
+  "ishaMissPercent": 10.0,
+  "witrMissPercent": 3.0
 }
 
 ### Create Profile (Invalid Gender)

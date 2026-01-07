@@ -33,13 +33,16 @@ export const validateProfileCreate = (data: any): ValidationError[] => {
     }
   });
 
-  // Jomaa percentage validation
-  if (data.jomaaMissPercent !== undefined) {
-    const value = parseFloat(data.jomaaMissPercent);
-    if (isNaN(value) || value < 0 || value > 100) {
-      errors.push('jomaaMissPercent must be a number between 0 and 100');
+  // Optional prayer percentages validation (Witr and Jomaa)
+  const optionalPrayerFields = ['witrMissPercent', 'jomaaMissPercent'];
+  optionalPrayerFields.forEach(field => {
+    if (data[field] !== undefined) {
+      const value = parseFloat(data[field]);
+      if (isNaN(value) || value < 0 || value > 100) {
+        errors.push(`${field} must be a number between 0 and 100`);
+      }
     }
-  }
+  });
 
   // Period days average validation (for females)
   if (data.periodDaysAverage !== undefined) {
@@ -90,13 +93,16 @@ export const validateProfileUpdate = (data: any): ValidationError[] => {
     }
   });
 
-  // Jomaa percentage validation
-  if (data.jomaaMissPercent !== undefined) {
-    const value = parseFloat(data.jomaaMissPercent);
-    if (isNaN(value) || value < 0 || value > 100) {
-      errors.push('jomaaMissPercent must be a number between 0 and 100');
+  // Optional prayer percentages validation (Witr and Jomaa)
+  const optionalPrayerFields = ['witrMissPercent', 'jomaaMissPercent'];
+  optionalPrayerFields.forEach(field => {
+    if (data[field] !== undefined) {
+      const value = parseFloat(data[field]);
+      if (isNaN(value) || value < 0 || value > 100) {
+        errors.push(`${field} must be a number between 0 and 100`);
+      }
     }
-  }
+  });
 
   // Period days average validation
   if (data.periodDaysAverage !== undefined) {

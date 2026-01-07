@@ -14,13 +14,16 @@ datasource db {
 }
 
 model User {
-    id        String   @id @default(uuid())
-    email     String   @unique
-    password  String
-    name      String?
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    profile   Profile?
+    id               String            @id @default(uuid())
+    email            String            @unique
+    password         String
+    name             String?
+    createdAt        DateTime          @default(now())
+    updatedAt        DateTime          @updatedAt
+    profile          Profile?
+    remainingPrayers RemainingPrayers?
+    goals            Goal[]
+    completedPrayers CompletedPrayers[]
 
     @@map("users")
 }
@@ -43,9 +46,63 @@ model Profile {
     asrMissPercent         Float     @default(0)
     maghribMissPercent     Float     @default(0)
     ishaMissPercent        Float     @default(0)
-    jomaaMissPercent       Float? // Optional, mainly for males
+    witrMissPercent        Float?    // Optional Witr prayer miss percentage
+    jomaaMissPercent       Float?    // Optional, mainly for males
     createdAt              DateTime  @default(now())
     updatedAt              DateTime  @updatedAt
 
     @@map("profiles")
+}
+
+model RemainingPrayers {
+    id                String   @id @default(uuid())
+    userId            String   @unique
+    user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    fajrRemaining     Int      @default(0)
+    dhuhrRemaining    Int      @default(0)
+    asrRemaining      Int      @default(0)
+    maghribRemaining  Int      @default(0)
+    ishaRemaining     Int      @default(0)
+    witrRemaining     Int      @default(0)
+    createdAt         DateTime @default(now())
+    updatedAt         DateTime @updatedAt
+
+    @@map("remaining_prayers")
+}
+
+model Goal {
+    id            String   @id @default(uuid())
+    userId        String
+    user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    fajrGoal      Int      @default(0)
+    dhuhrGoal     Int      @default(0)
+    asrGoal       Int      @default(0)
+    maghribGoal   Int      @default(0)
+    ishaGoal      Int      @default(0)
+    witrGoal      Int      @default(0)
+    startDate     DateTime @default(now())
+    endDate       DateTime?
+    isActive      Boolean  @default(true)
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+
+    @@map("goals")
+}
+
+model CompletedPrayers {
+    id               String   @id @default(uuid())
+    userId           String
+    user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    date             DateTime @db.Date
+    fajrCompleted    Int      @default(0)
+    dhuhrCompleted   Int      @default(0)
+    asrCompleted     Int      @default(0)
+    maghribCompleted Int      @default(0)
+    ishaCompleted    Int      @default(0)
+    witrCompleted    Int      @default(0)
+    createdAt        DateTime @default(now())
+    updatedAt        DateTime @updatedAt
+
+    @@unique([userId, date])
+    @@map("completed_prayers")
 }
