@@ -1,5 +1,10 @@
 import { Router } from 'express';
-import { createProfile, getProfile, updateProfile } from '../controllers/profile.controller';
+import {
+  createProfile,
+  getProfile,
+  updateProfile,
+  deleteProfile,
+} from '../controllers/profile.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import {
   validateProfileCreateMiddleware,
@@ -14,5 +19,6 @@ router.use(authenticate);
 router.post('/', validateProfileCreateMiddleware, createProfile);
 router.get('/', getProfile);
 router.put('/', validateProfileUpdateMiddleware, updateProfile);
+router.delete('/', deleteProfile);
 
 export default router;

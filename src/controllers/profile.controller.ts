@@ -3,6 +3,7 @@ import prisma from '../config/database';
 import { getLogger } from '../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { calculateRemainingPrayers } from '../services/remainingPrayersCalculator.service';
+import { Gender } from '../../prisma/prisma/client';
 
 export const createProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   const log = getLogger(req.traceId);
@@ -174,7 +175,19 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
     } = req.body;
 
     // Build update data object (only include provided fields)
-    const updateData: any = {};
+    const updateData: {
+      gender?: Gender;
+      pubertyDate?: Date;
+      regularPrayerStartDate?: Date | null;
+      periodDaysAverage?: number | null;
+      fajrMissPercent?: number;
+      dhuhrMissPercent?: number;
+      asrMissPercent?: number;
+      maghribMissPercent?: number;
+      ishaMissPercent?: number;
+      witrMissPercent?: number | null;
+      jomaaMissPercent?: number | null;
+    } = {};
 
     if (gender !== undefined) updateData.gender = gender;
     if (pubertyDate !== undefined) updateData.pubertyDate = new Date(pubertyDate);
@@ -265,6 +278,57 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
     });
   } catch (error) {
     log.error({ err: error }, 'Profile update error');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const deleteProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+  const log = getLogger(req.traceId);
+
+  try {
+    const userId = req.userId!;
+
+    // Check if profile exists
+    const existingProfile = await prisma.profile.findUnique({
+      where: { userId },
+    });
+
+    if (!existingProfile) {
+      log.warn({ userId }, 'Profile deletion failed: profile not found');
+      res.status(404).json({ error: 'Profile not found' });
+      return;
+    }
+
+    // Delete related data in a transaction
+    await prisma.$transaction(async tx => {
+      // Delete completed prayers
+      await tx.completedPrayers.deleteMany({
+        where: { userId },
+      });
+
+      // Delete goals
+      await tx.goal.deleteMany({
+        where: { userId },
+      });
+
+      // Delete remaining prayers
+      await tx.remainingPrayers.deleteMany({
+        where: { userId },
+      });
+
+      // Delete profile
+      await tx.profile.delete({
+        where: { userId },
+      });
+    });
+
+    log.info({ userId }, 'Profile and all related data deleted successfully');
+
+    res.json({
+      message: 'Profile and all related data deleted successfully',
+    });
+  } catch (error) {
+    log.error({ err: error }, 'Profile deletion error');
     res.status(500).json({ error: 'Internal server error' });
   }
 };

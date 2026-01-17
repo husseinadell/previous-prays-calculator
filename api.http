@@ -175,3 +175,152 @@ Content-Type: application/json
   "gender": "MALE"
 }
 
+### Delete Profile
+DELETE {{apiUrl}}/profile
+Authorization: Bearer {{token}}
+
+### ============================================
+### Goal Endpoints (Require Authentication)
+### ============================================
+
+### Create Goal
+POST {{apiUrl}}/goals
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fajrGoal": 100,
+  "dhuhrGoal": 150,
+  "asrGoal": 120,
+  "maghribGoal": 100,
+  "ishaGoal": 100,
+  "witrGoal": 50,
+  "startDate": "2025-01-01",
+  "endDate": "2025-12-31",
+  "isActive": true
+}
+
+### Create Goal (Minimal - Only Required Fields)
+POST {{apiUrl}}/goals
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fajrGoal": 50,
+  "dhuhrGoal": 75
+}
+
+### Get All Goals
+GET {{apiUrl}}/goals
+Authorization: Bearer {{token}}
+
+### Get All Active Goals
+GET {{apiUrl}}/goals?active=true
+Authorization: Bearer {{token}}
+
+### Get All Inactive Goals
+GET {{apiUrl}}/goals?active=false
+Authorization: Bearer {{token}}
+
+### Get Goal by ID
+# Replace {goalId} with actual goal ID from create response
+GET {{apiUrl}}/goals/{goalId}
+Authorization: Bearer {{token}}
+
+### Update Goal
+# Replace {goalId} with actual goal ID
+PUT {{apiUrl}}/goals/{goalId}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fajrGoal": 120,
+  "dhuhrGoal": 180,
+  "isActive": true
+}
+
+### Update Goal (Deactivate)
+PUT {{apiUrl}}/goals/{goalId}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "isActive": false
+}
+
+### Calculate Goal Days (How many days to complete remaining prayers)
+POST {{apiUrl}}/goals/calculate-days
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fajrGoal": 5,
+  "dhuhrGoal": 3,
+  "asrGoal": 4,
+  "maghribGoal": 2,
+  "ishaGoal": 3,
+  "witrGoal": 1
+}
+
+### Calculate Goal Days (Partial Goals)
+POST {{apiUrl}}/goals/calculate-days
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fajrGoal": 10,
+  "dhuhrGoal": 5
+}
+
+### ============================================
+### Completed Prayers Endpoints (Require Authentication)
+### ============================================
+
+### Mark Today as Completed (Uses most recent active goal)
+POST {{apiUrl}}/completed-prayers
+Authorization: Bearer {{token}}
+
+### Mark Specific Date as Completed (Uses most recent active goal)
+POST {{apiUrl}}/completed-prayers?date=2025-01-15
+Authorization: Bearer {{token}}
+
+### Get Completed Prayers for Specific Date (or today if no date)
+GET {{apiUrl}}/completed-prayers/date?date=2025-01-15
+Authorization: Bearer {{token}}
+
+### Get Completed Prayers for Today
+GET {{apiUrl}}/completed-prayers/date
+Authorization: Bearer {{token}}
+
+### Get All Completed Prayers
+GET {{apiUrl}}/completed-prayers
+Authorization: Bearer {{token}}
+
+### Get All Completed Prayers (Date Range)
+GET {{apiUrl}}/completed-prayers?startDate=2025-01-01&endDate=2025-01-31
+Authorization: Bearer {{token}}
+
+### Update Today's Completed Prayers
+PUT {{apiUrl}}/completed-prayers
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fajrCompleted": 2,
+  "dhuhrCompleted": 3,
+  "asrCompleted": 2,
+  "maghribCompleted": 2,
+  "ishaCompleted": 2,
+  "witrCompleted": 1
+}
+
+### Update Completed Prayers for Specific Date
+PUT {{apiUrl}}/completed-prayers?date=2025-01-15
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fajrCompleted": 1,
+  "dhuhrCompleted": 2,
+  "asrCompleted": 1
+}
