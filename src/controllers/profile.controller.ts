@@ -332,3 +332,117 @@ export const deleteProfile = async (req: AuthRequest, res: Response): Promise<vo
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+/**
+ * Get progress statistics: remaining prayers, completed prayers, and days to complete
+ */
+export const getProgressStats = async (req: AuthRequest, res: Response): Promise<void> => {
+  const log = getLogger(req.traceId);
+
+  try {
+    const userId = req.userId!;
+
+    // Get remaining prayers
+    const remainingPrayers = await prisma.remainingPrayers.findUnique({
+      where: { userId },
+    });
+
+    if (!remainingPrayers) {
+      log.warn({ userId }, 'Remaining prayers not found');
+      res.status(404).json({
+        error: 'Remaining prayers not found. Please create a profile first.',
+      });
+      return;
+    }
+
+    // Aggregate all completed prayers
+    const completedAggregate = await prisma.completedPrayers.aggregate({
+      where: { userId },
+      _sum: {
+        fajrCompleted: true,
+        dhuhrCompleted: true,
+        asrCompleted: true,
+        maghribCompleted: true,
+        ishaCompleted: true,
+        witrCompleted: true,
+      },
+    });
+
+    const totalCompleted = {
+      fajr: completedAggregate._sum.fajrCompleted || 0,
+      dhuhr: completedAggregate._sum.dhuhrCompleted || 0,
+      asr: completedAggregate._sum.asrCompleted || 0,
+      maghrib: completedAggregate._sum.maghribCompleted || 0,
+      isha: completedAggregate._sum.ishaCompleted || 0,
+      witr: completedAggregate._sum.witrCompleted || 0,
+    };
+
+    // Calculate original remaining prayers (start value)
+    const originalRemaining = {
+      fajr: remainingPrayers.fajrRemaining + totalCompleted.fajr,
+      dhuhr: remainingPrayers.dhuhrRemaining + totalCompleted.dhuhr,
+      asr: remainingPrayers.asrRemaining + totalCompleted.asr,
+      maghrib: remainingPrayers.maghribRemaining + totalCompleted.maghrib,
+      isha: remainingPrayers.ishaRemaining + totalCompleted.isha,
+      witr: remainingPrayers.witrRemaining + totalCompleted.witr,
+    };
+
+    // Get active goal to calculate days to complete
+    const activeGoal = await prisma.goal.findFirst({
+      where: {
+        userId,
+        isActive: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    // Calculate days to complete for each prayer
+    const calculateDays = (remaining: number, goal: number): number | null => {
+      if (goal <= 0) {
+        return null;
+      }
+      return Math.ceil(remaining / goal);
+    };
+
+    const daysToComplete = {
+      fajr: activeGoal ? calculateDays(remainingPrayers.fajrRemaining, activeGoal.fajrGoal) : null,
+      dhuhr: activeGoal
+        ? calculateDays(remainingPrayers.dhuhrRemaining, activeGoal.dhuhrGoal)
+        : null,
+      asr: activeGoal ? calculateDays(remainingPrayers.asrRemaining, activeGoal.asrGoal) : null,
+      maghrib: activeGoal
+        ? calculateDays(remainingPrayers.maghribRemaining, activeGoal.maghribGoal)
+        : null,
+      isha: activeGoal ? calculateDays(remainingPrayers.ishaRemaining, activeGoal.ishaGoal) : null,
+      witr: activeGoal ? calculateDays(remainingPrayers.witrRemaining, activeGoal.witrGoal) : null,
+    };
+
+    log.info({ userId }, 'Progress stats retrieved successfully');
+
+    res.json({
+      fajrRemaining: originalRemaining.fajr,
+      fajrCompleted: totalCompleted.fajr,
+      fajrDaysToComplete: daysToComplete.fajr,
+      dhuhrRemaining: originalRemaining.dhuhr,
+      dhuhrCompleted: totalCompleted.dhuhr,
+      dhuhrDaysToComplete: daysToComplete.dhuhr,
+      asrRemaining: originalRemaining.asr,
+      asrCompleted: totalCompleted.asr,
+      asrDaysToComplete: daysToComplete.asr,
+      maghribRemaining: originalRemaining.maghrib,
+      maghribCompleted: totalCompleted.maghrib,
+      maghribDaysToComplete: daysToComplete.maghrib,
+      ishaRemaining: originalRemaining.isha,
+      ishaCompleted: totalCompleted.isha,
+      ishaDaysToComplete: daysToComplete.isha,
+      witrRemaining: originalRemaining.witr,
+      witrCompleted: totalCompleted.witr,
+      witrDaysToComplete: daysToComplete.witr,
+    });
+  } catch (error) {
+    log.error({ err: error }, 'Get progress stats error');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};

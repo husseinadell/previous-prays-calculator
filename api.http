@@ -131,6 +131,10 @@ Content-Type: application/json
 GET {{apiUrl}}/profile
 Authorization: Bearer {{token}}
 
+### Get Progress Statistics (Remaining, Completed, Days to Complete)
+GET {{apiUrl}}/profile/progress
+Authorization: Bearer {{token}}
+
 ### Update Profile
 PUT {{apiUrl}}/profile
 Authorization: Bearer {{token}}

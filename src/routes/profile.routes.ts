@@ -4,6 +4,7 @@ import {
   getProfile,
   updateProfile,
   deleteProfile,
+  getProgressStats,
 } from '../controllers/profile.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import {
@@ -18,6 +19,7 @@ router.use(authenticate);
 
 router.post('/', validateProfileCreateMiddleware, createProfile);
 router.get('/', getProfile);
+router.get('/progress', getProgressStats);
 router.put('/', validateProfileUpdateMiddleware, updateProfile);
 router.delete('/', deleteProfile);
 
