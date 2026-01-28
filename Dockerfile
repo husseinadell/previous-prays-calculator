@@ -40,13 +40,18 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/package.json ./package.json
+
+# Copy startup script (before switching user)
+COPY scripts/start.sh ./scripts/start.sh
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Change ownership
-RUN chown -R nodejs:nodejs /app
+# Change ownership and make script executable
+RUN chown -R nodejs:nodejs /app && \
+    chmod +x ./scripts/start.sh
 
 USER nodejs
 
@@ -57,6 +62,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start application
-CMD ["node", "dist/index.js"]
+# Start application (runs migrations first)
+CMD ["./scripts/start.sh"]
 
