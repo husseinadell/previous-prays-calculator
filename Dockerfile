@@ -32,15 +32,13 @@ WORKDIR /app
 # Copy package files
 COPY package.json pnpm-lock.yaml* ./
 
-# Install dependencies (including Prisma CLI for migrations)
+# Install dependencies (including devDependencies for Prisma CLI)
 RUN pnpm install --frozen-lockfile
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/package.json ./package.json
 
 # Copy startup script (before switching user)
 COPY scripts/start.sh ./scripts/start.sh
