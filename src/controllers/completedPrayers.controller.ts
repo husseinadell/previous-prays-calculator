@@ -2,6 +2,7 @@ import { Response } from 'express';
 import prisma from '../config/database';
 import { getLogger } from '../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { parseDateOrToday, parseDateToUTCEndOfDay } from '../utils/date.utils';
 
 /**
  * Mark prayers as completed for a specific date (or today if not provided) based on the most recent active goal
@@ -15,14 +16,7 @@ export const markCompleted = async (req: AuthRequest, res: Response): Promise<vo
     const { date } = req.query;
 
     // Get target date (use provided date or default to today)
-    let targetDate: Date;
-    if (date) {
-      targetDate = new Date(date as string);
-      targetDate.setHours(0, 0, 0, 0);
-    } else {
-      targetDate = new Date();
-      targetDate.setHours(0, 0, 0, 0);
-    }
+    const targetDate = parseDateOrToday(date as string | undefined);
 
     // Find the most recent active goal for the user
     const activeGoal = await prisma.goal.findFirst({
@@ -110,14 +104,7 @@ export const getCompletedPrayers = async (req: AuthRequest, res: Response): Prom
     const userId = req.userId!;
     const { date } = req.query;
 
-    let targetDate: Date;
-    if (date) {
-      targetDate = new Date(date as string);
-      targetDate.setHours(0, 0, 0, 0);
-    } else {
-      targetDate = new Date();
-      targetDate.setHours(0, 0, 0, 0);
-    }
+    const targetDate = parseDateOrToday(date as string | undefined);
 
     const completedPrayers = await prisma.completedPrayers.findUnique({
       where: {
@@ -163,14 +150,10 @@ export const getAllCompletedPrayers = async (req: AuthRequest, res: Response): P
     if (startDate || endDate) {
       where.date = {};
       if (startDate) {
-        const start = new Date(startDate as string);
-        start.setHours(0, 0, 0, 0);
-        where.date.gte = start;
+        where.date.gte = parseDateOrToday(startDate as string);
       }
       if (endDate) {
-        const end = new Date(endDate as string);
-        end.setHours(23, 59, 59, 999);
-        where.date.lte = end;
+        where.date.lte = parseDateToUTCEndOfDay(endDate as string);
       }
     }
 
@@ -216,14 +199,7 @@ export const updateCompletedPrayers = async (req: AuthRequest, res: Response): P
     } = req.body;
 
     // Get target date (use provided date or default to today)
-    let targetDate: Date;
-    if (date) {
-      targetDate = new Date(date as string);
-      targetDate.setHours(0, 0, 0, 0);
-    } else {
-      targetDate = new Date();
-      targetDate.setHours(0, 0, 0, 0);
-    }
+    const targetDate = parseDateOrToday(date as string | undefined);
 
     // Parse increment values
     const fajrIncrement = parseInt(fajrCompleted, 10) || 0;
