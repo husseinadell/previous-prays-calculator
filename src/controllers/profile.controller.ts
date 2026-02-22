@@ -377,14 +377,24 @@ export const getProgressStats = async (req: AuthRequest, res: Response): Promise
       witr: completedAggregate._sum.witrCompleted || 0,
     };
 
-    // Calculate original remaining prayers (start value)
+    // Original remaining = the value stored at profile creation (never modified)
     const originalRemaining = {
-      fajr: remainingPrayers.fajrRemaining + totalCompleted.fajr,
-      dhuhr: remainingPrayers.dhuhrRemaining + totalCompleted.dhuhr,
-      asr: remainingPrayers.asrRemaining + totalCompleted.asr,
-      maghrib: remainingPrayers.maghribRemaining + totalCompleted.maghrib,
-      isha: remainingPrayers.ishaRemaining + totalCompleted.isha,
-      witr: remainingPrayers.witrRemaining + totalCompleted.witr,
+      fajr: remainingPrayers.fajrRemaining,
+      dhuhr: remainingPrayers.dhuhrRemaining,
+      asr: remainingPrayers.asrRemaining,
+      maghrib: remainingPrayers.maghribRemaining,
+      isha: remainingPrayers.ishaRemaining,
+      witr: remainingPrayers.witrRemaining,
+    };
+
+    // Current remaining = original minus what has been completed so far
+    const currentRemaining = {
+      fajr: remainingPrayers.fajrRemaining - totalCompleted.fajr,
+      dhuhr: remainingPrayers.dhuhrRemaining - totalCompleted.dhuhr,
+      asr: remainingPrayers.asrRemaining - totalCompleted.asr,
+      maghrib: remainingPrayers.maghribRemaining - totalCompleted.maghrib,
+      isha: remainingPrayers.ishaRemaining - totalCompleted.isha,
+      witr: remainingPrayers.witrRemaining - totalCompleted.witr,
     };
 
     // Get active goal to calculate days to complete
@@ -407,37 +417,39 @@ export const getProgressStats = async (req: AuthRequest, res: Response): Promise
     };
 
     const daysToComplete = {
-      fajr: activeGoal ? calculateDays(remainingPrayers.fajrRemaining, activeGoal.fajrGoal) : null,
-      dhuhr: activeGoal
-        ? calculateDays(remainingPrayers.dhuhrRemaining, activeGoal.dhuhrGoal)
-        : null,
-      asr: activeGoal ? calculateDays(remainingPrayers.asrRemaining, activeGoal.asrGoal) : null,
-      maghrib: activeGoal
-        ? calculateDays(remainingPrayers.maghribRemaining, activeGoal.maghribGoal)
-        : null,
-      isha: activeGoal ? calculateDays(remainingPrayers.ishaRemaining, activeGoal.ishaGoal) : null,
-      witr: activeGoal ? calculateDays(remainingPrayers.witrRemaining, activeGoal.witrGoal) : null,
+      fajr: activeGoal ? calculateDays(currentRemaining.fajr, activeGoal.fajrGoal) : null,
+      dhuhr: activeGoal ? calculateDays(currentRemaining.dhuhr, activeGoal.dhuhrGoal) : null,
+      asr: activeGoal ? calculateDays(currentRemaining.asr, activeGoal.asrGoal) : null,
+      maghrib: activeGoal ? calculateDays(currentRemaining.maghrib, activeGoal.maghribGoal) : null,
+      isha: activeGoal ? calculateDays(currentRemaining.isha, activeGoal.ishaGoal) : null,
+      witr: activeGoal ? calculateDays(currentRemaining.witr, activeGoal.witrGoal) : null,
     };
 
     log.info({ userId }, 'Progress stats retrieved successfully');
 
     res.json({
-      fajrRemaining: originalRemaining.fajr,
+      fajrOriginal: originalRemaining.fajr,
+      fajrRemaining: currentRemaining.fajr,
       fajrCompleted: totalCompleted.fajr,
       fajrDaysToComplete: daysToComplete.fajr,
-      dhuhrRemaining: originalRemaining.dhuhr,
+      dhuhrOriginal: originalRemaining.dhuhr,
+      dhuhrRemaining: currentRemaining.dhuhr,
       dhuhrCompleted: totalCompleted.dhuhr,
       dhuhrDaysToComplete: daysToComplete.dhuhr,
-      asrRemaining: originalRemaining.asr,
+      asrOriginal: originalRemaining.asr,
+      asrRemaining: currentRemaining.asr,
       asrCompleted: totalCompleted.asr,
       asrDaysToComplete: daysToComplete.asr,
-      maghribRemaining: originalRemaining.maghrib,
+      maghribOriginal: originalRemaining.maghrib,
+      maghribRemaining: currentRemaining.maghrib,
       maghribCompleted: totalCompleted.maghrib,
       maghribDaysToComplete: daysToComplete.maghrib,
-      ishaRemaining: originalRemaining.isha,
+      ishaOriginal: originalRemaining.isha,
+      ishaRemaining: currentRemaining.isha,
       ishaCompleted: totalCompleted.isha,
       ishaDaysToComplete: daysToComplete.isha,
-      witrRemaining: originalRemaining.witr,
+      witrOriginal: originalRemaining.witr,
+      witrRemaining: currentRemaining.witr,
       witrCompleted: totalCompleted.witr,
       witrDaysToComplete: daysToComplete.witr,
     });
