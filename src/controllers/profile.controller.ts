@@ -389,12 +389,12 @@ export const getProgressStats = async (req: AuthRequest, res: Response): Promise
 
     // Current remaining = original minus what has been completed so far
     const currentRemaining = {
-      fajr: remainingPrayers.fajrRemaining - totalCompleted.fajr,
-      dhuhr: remainingPrayers.dhuhrRemaining - totalCompleted.dhuhr,
-      asr: remainingPrayers.asrRemaining - totalCompleted.asr,
-      maghrib: remainingPrayers.maghribRemaining - totalCompleted.maghrib,
-      isha: remainingPrayers.ishaRemaining - totalCompleted.isha,
-      witr: remainingPrayers.witrRemaining - totalCompleted.witr,
+      fajr: Math.max(0, remainingPrayers.fajrRemaining - totalCompleted.fajr),
+      dhuhr: Math.max(0, remainingPrayers.dhuhrRemaining - totalCompleted.dhuhr),
+      asr: Math.max(0, remainingPrayers.asrRemaining - totalCompleted.asr),
+      maghrib: Math.max(0, remainingPrayers.maghribRemaining - totalCompleted.maghrib),
+      isha: Math.max(0, remainingPrayers.ishaRemaining - totalCompleted.isha),
+      witr: Math.max(0, remainingPrayers.witrRemaining - totalCompleted.witr),
     };
 
     // Get active goal to calculate days to complete
