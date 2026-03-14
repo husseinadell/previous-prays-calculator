@@ -46,6 +46,50 @@ export const markCompleted = async (req: AuthRequest, res: Response): Promise<vo
     });
 
     if (existingRecord) {
+      // Check if the active goal values differ from the existing record
+      const goalChanged =
+        existingRecord.fajrCompleted !== activeGoal.fajrGoal ||
+        existingRecord.dhuhrCompleted !== activeGoal.dhuhrGoal ||
+        existingRecord.asrCompleted !== activeGoal.asrGoal ||
+        existingRecord.maghribCompleted !== activeGoal.maghribGoal ||
+        existingRecord.ishaCompleted !== activeGoal.ishaGoal ||
+        existingRecord.witrCompleted !== activeGoal.witrGoal;
+
+      if (goalChanged) {
+        const updatedRecord = await prisma.completedPrayers.update({
+          where: { id: existingRecord.id },
+          data: {
+            fajrCompleted: activeGoal.fajrGoal,
+            dhuhrCompleted: activeGoal.dhuhrGoal,
+            asrCompleted: activeGoal.asrGoal,
+            maghribCompleted: activeGoal.maghribGoal,
+            ishaCompleted: activeGoal.ishaGoal,
+            witrCompleted: activeGoal.witrGoal,
+          },
+        });
+
+        log.info(
+          { userId, date: targetDate, goalId: activeGoal.id },
+          'Completed prayers updated to match new goal'
+        );
+
+        res.status(200).json({
+          message: 'Completed prayers updated to match the current goal',
+          completedPrayers: updatedRecord,
+          date: targetDate.toISOString().split('T')[0],
+          goal: {
+            id: activeGoal.id,
+            fajrGoal: activeGoal.fajrGoal,
+            dhuhrGoal: activeGoal.dhuhrGoal,
+            asrGoal: activeGoal.asrGoal,
+            maghribGoal: activeGoal.maghribGoal,
+            ishaGoal: activeGoal.ishaGoal,
+            witrGoal: activeGoal.witrGoal,
+          },
+        });
+        return;
+      }
+
       log.warn({ userId, date: targetDate }, 'Date already marked as completed');
       res.status(400).json({
         error: 'This date has already been marked as completed. Use update endpoint to modify.',
